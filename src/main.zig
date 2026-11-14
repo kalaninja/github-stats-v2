@@ -257,11 +257,11 @@ pub fn main(init: std.process.Init) !void {
         views: usize = 0,
         repos: usize = 0,
     } = .{
-        .contributions = stats.repo_contributions +
+        .contributions = stats.calendar_contributions orelse (stats.repo_contributions +
             stats.issue_contributions +
             stats.commit_contributions +
             stats.pr_contributions +
-            stats.review_contributions,
+            stats.review_contributions),
         .languages = try .init(allocator, &.{}, &.{}),
         .language_colors = try .init(allocator, &.{}, &.{}),
         .name = stats.name,

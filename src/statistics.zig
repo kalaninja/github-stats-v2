@@ -11,6 +11,7 @@ issue_contributions: u32 = 0,
 commit_contributions: u32 = 0,
 pr_contributions: u32 = 0,
 review_contributions: u32 = 0,
+calendar_contributions: ?u32 = null,
 
 const Statistics = @This();
 
@@ -253,6 +254,7 @@ fn getReposByYear(
         \\query ($from: DateTime, $to: DateTime) {
         \\  viewer {
         \\    contributionsCollection(from: $from, to: $to) {
+        \\      contributionCalendar { totalContributions }
         \\      totalRepositoryContributions
         \\      totalIssueContributions
         \\      totalCommitContributions
@@ -309,6 +311,7 @@ fn getReposByYear(
     const stats = (try std.json.parseFromSliceLeaky(
         struct { data: struct { viewer: struct {
             contributionsCollection: struct {
+                contributionCalendar: struct { totalContributions: u32 },
                 totalRepositoryContributions: u32,
                 totalIssueContributions: u32,
                 totalCommitContributions: u32,
@@ -341,6 +344,13 @@ fn getReposByYear(
         "Parsed {d} total repositories from {d}",
         .{ stats.commitContributionsByRepository.len, year },
     );
+
+    // Use the full-year calendar even when the repository lookup is split.
+    if (months == 12) {
+        context.result.calendar_contributions =
+            (context.result.calendar_contributions orelse 0) +
+            stats.contributionCalendar.totalContributions;
+    }
 
     const limit = 100;
     // This slightly convoluted logic subdivides the months range for the
